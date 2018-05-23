@@ -19,10 +19,10 @@ function purgeBackups($src_tgt) {
 	# The "backup" is why it goes to stagingbackup I think
 	Get-ChildItem ($src_tgt.src + "backup") |
 	Foreach-Object {
-	# Print for testing 
-	# Write-Output "purgeBackups: "
-	# Write-Output $_.FullName
-        $fd = (Get-Date -date (($_.Name).split("_")[0]))
+		# Print for testing 
+		# Write-Output "purgeBackups: "
+		# Write-Output $_.FullName
+        	$fd = (Get-Date -date (($_.Name).split("_")[0]))
 		if ($fd -le $cutoff) {
             		Write-Host ("Purging {0}" -f $_.FullName)
 			Write-Log ("Purging {0}" -f $_.FullName)
@@ -44,36 +44,38 @@ function upload($src_tgt) {
 		# Used session properties from config file
         	$sessionOptions = New-Object WinSCP.SessionOptions -Property $SESSION_PROPERTIES
        		$session = New-Object WinSCP.Session
-        try
-        {
-		# Connect using config credentials
-            	$session.Open($sessionOptions)
-            	# Upload files
-		# Transfer options set up from WinSCP library
-            	$transferOptions = New-Object WinSCP.TransferOptions
-            	$transferOptions.TransferMode = [WinSCP.TransferMode]::Ascii
-		# PutFiles is a WinSCP method that uploads files from local to remote directory 
-		# $FILE_FILTER, src, and tgt are from config file
-		# $FALSE is from PutFiles method, setting to true deletes local files, false is default
-            	$transferResult = $session.PutFiles($src_tgt.src + $FILE_FILTER, $src_tgt.tgt, $False, $transferOptions)
+		try
+		{
+			# Connect using config credentials
+			$session.Open($sessionOptions)
+			
+			# Upload files
+			# Transfer options set up from WinSCP library
+			$transferOptions = New-Object WinSCP.TransferOptions
+			$transferOptions.TransferMode = [WinSCP.TransferMode]::Ascii
+			
+			# PutFiles is a WinSCP method that uploads files from local to remote directory 
+			# $FILE_FILTER, src, and tgt are from config file
+			# $FALSE is from PutFiles method, setting to true deletes local files, false is default
+			$transferResult = $session.PutFiles($src_tgt.src + $FILE_FILTER, $src_tgt.tgt, $False, $transferOptions)
 
-            	# Throw on any error
-		# This is a method from TransferOperationResultClass within WinSCP.net that deals with errors
-            	$transferResult.Check()
+			# Throw on any error
+			# This is a method from TransferOperationResultClass within WinSCP.net that deals with errors
+			$transferResult.Check()
  
-            	# Print results
-		# Transfers is a property of TransferOperationResultClass, but no details on what it does
-            	foreach ($transfer in $transferResult.Transfers)
-			{
-				# Print for testing
-				Write-Output "File to be transferred: "
-				Write-Output $transfer.FileName
-				
-				# Inserts filename into string
-                		Write-Host ("Upload of {0} succeeded" -f $transfer.FileName) -Verbose
-				Write-Log ("Upload of {0} succeeded" -f $transfer.FileName)
-				Write-Output "`n"
-           		 }
+            		# Print results
+			# Transfers is a property of TransferOperationResultClass, but no details on what it does
+			foreach ($transfer in $transferResult.Transfers)
+				{
+					# Print for testing
+					Write-Output "File to be transferred: "
+					Write-Output $transfer.FileName
+
+					# Inserts filename into string
+					Write-Host ("Upload of {0} succeeded" -f $transfer.FileName) -Verbose
+					Write-Log ("Upload of {0} succeeded" -f $transfer.FileName)
+					Write-Output "`n"
+				 }
         }
 		
 	# Finally block runs every time the script is run, with or without errors
@@ -100,40 +102,41 @@ function processFiles() {
         # make sure backup directory exists
         $backPath = $obj.src + "backup\$((Get-Date).ToString('yyyy-MM-dd_HH-mm-ss'))"
 		
-		# Print obj for testing
-		Write-Output $obj
-		Write-Output "`n"
-		
-		# Print backPath for testing
-		Write-Output "backPath is: "
-		Write-Output $backPath
-		Write-Output "`n"
-		
-		# Creates new item: director with path being $backPath
-		# -Force should allow overwriting for existing items
+	# Print obj for testing
+	Write-Output $obj
+	Write-Output "`n"
+
+	# Print backPath for testing
+	Write-Output "backPath is: "
+	Write-Output $backPath
+	Write-Output "`n"
+
+	# Creates new item: director with path being $backPath
+	# -Force should allow overwriting for existing items
+	
         New-Item -Force -ItemType Directory -Path -Verbose $backPath | Out-Null
 		
-		# Calls upload function from above
+	# Calls upload function from above
         upload $obj
 
         try {
-			# Gets items from CHFS staging source filtered by type
-            Get-ChildItem $obj.src -Filter $FILE_FILTER | 
-            Foreach-Object {
-				# Print for testing 
-				Write-Output $_.FullName
-				# For each, move the item 
-				# ---- I THINK THIS IS WHERE THE ERRORS HAPPEN ----
-                Move-Item -Path $_.FullName $backPath
+		# Gets items from CHFS staging source filtered by type
+            	Get-ChildItem $obj.src -Filter $FILE_FILTER | 
+            	Foreach-Object {
+			# Print for testing 
+			Write-Output $_.FullName
+			# For each, move the item 
+			# ---- I THINK THIS IS WHERE THE ERRORS HAPPEN ----
+                	Move-Item -Path $_.FullName $backPath
             }
         }  
         catch [Exception]
         {
-			# Print exception errors
-            Write-Host ("Error: {0}" -f $_.Exception.Message)        
+		# Print exception errors
+            	Write-Host ("Error: {0}" -f $_.Exception.Message)        
         }
 		
-		# Calls purgeBackups function from above
+	# Calls purgeBackups function from above
         purgeBackups $obj
     }
 }
