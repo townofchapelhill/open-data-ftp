@@ -1,2 +1,2 @@
-# Ignore config file
-configtest.ps1
+# Ignore secrets
+secrets.py
