@@ -9,18 +9,16 @@ import sys
 import datetime
 import traceback
 import secrets, filename_secrets
-	
+
 # Create the sftp connection with credentials from secrets file
 def create_client():
 	# Open a transport via paramiko
 	host = secrets.odftphost
 	port = 222
 	transport = paramiko.Transport((host, port))
-
 	# Authorization with login credentials
 	password = secrets.odftppass
 	username = secrets.odftpuser
-	
 	# Attempt connection and handle errors
 	try: 
 		transport.connect(username = username, password = password)
@@ -42,8 +40,7 @@ if __name__ == '__main__':
 
     # Establish file paths
     remote_file = '/datasets' + ftp_file
-    local_file = filename_secrets.productionStaging + ftp_file
-
+    local_file = filename_secrets.workfilesDirectory + ftp_file
 	# Call functions and handle exceptions
     try:	
         sftp, transport = create_client()
@@ -51,7 +48,7 @@ if __name__ == '__main__':
     except:
         print(f'Could not retrieve {remote_file}')
         print(traceback.format_exc())
-	
+
 	# Close connections
     sftp.close()
     transport.close()
