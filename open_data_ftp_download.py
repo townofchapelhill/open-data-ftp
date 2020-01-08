@@ -1,5 +1,6 @@
 """
-Download the permits file from the ODS sftp site for further processing
+Download a file from the ODS sftp site for further processing
+Input Parameter:  The filename to be downloaded
 """
 
 import paramiko
@@ -32,19 +33,25 @@ def create_client():
 	return [sftp, transport]
 
 if __name__ == '__main__':
-	# Establish file paths
-	ftp_file = "/permits.csv"
-	remote_file = '/datasets' + ftp_file
-	local_file = filename_secrets.productionStaging + ftp_file
+    # A filename to be downloaded is a required command line paremeter
+    if len(sys.argv) < 2:
+        print(f'The filename to be downloaded must be included as a command line parameter')
+        print(traceback.format_exc())
+    else:
+        ftp_file = "/" + sys.argv[1]
+
+    # Establish file paths
+    remote_file = '/datasets' + ftp_file
+    local_file = filename_secrets.productionStaging + ftp_file
 
 	# Call functions and handle exceptions
-	try:	
-		sftp, transport = create_client()
-		sftp.get(remote_file, local_file)	
-	except:
-		print(f'Could not retrieve {remote_file}')
-		print(traceback.format_exc())
+    try:	
+        sftp, transport = create_client()
+        sftp.get(remote_file, local_file)	
+    except:
+        print(f'Could not retrieve {remote_file}')
+        print(traceback.format_exc())
 	
 	# Close connections
-	sftp.close()
-	transport.close()
+    sftp.close()
+    transport.close()
